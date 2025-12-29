@@ -1,18 +1,31 @@
-import type { Player, Team } from "./types";
+import type { Team, TeamPerk } from "./types";
 
-export function assignTeamsRandomly(players: Player[], teamCount = 2): Team[] {
-  const shuffled = [...players].sort(() => Math.random() - 0.5);
+export const NATO_TEAMS = [
+  "ALPHA","BRAVO","CHARLIE","DELTA","ECHO","FOXTROT","GOLF","HOTEL","INDIA","JULIET",
+];
 
-  const teams: Team[] = Array.from({ length: teamCount }).map((_, i) => ({
-    id: `team_${i + 1}`,
-    name: i === 0 ? "Alpha" : i === 1 ? "Bravo" : `Team ${i + 1}`,
-    playerIds: [],
-  }));
+function perkForTeamIndex(index: number, mode: string): TeamPerk {
+  if (mode === "FAMILY") {
+    const perks: TeamPerk[] = ["LEAD_HOUNDS", "PATTERN_SPOTTERS", "INTERROGATORS", "FORENSICS"];
+    return perks[index % perks.length];
+  }
+  return "NONE";
+}
 
-  shuffled.forEach((p, idx) => {
-    teams[idx % teamCount].playerIds.push(p.id);
-    p.teamId = teams[idx % teamCount].id;
-  });
+export function assignTeamsRandomly(
+  players: { id: string }[],
+  teamCount: number,
+  mode: string
+): Team[] {
+  const teams: Team[] = Array.from({ length: teamCount }, (_, i) => ({
+    id: `team_${i + 1}`,
+    name: NATO_TEAMS[i] ?? `TEAM_${i + 1}`,
+    playerIds: [],
+    perk: perkForTeamIndex(i, mode),
+  }));
 
-  return teams;
+  const shuffled = [...players].sort(() => Math.random() - 0.5);
+  shuffled.forEach((p, idx) => teams[idx % teamCount].playerIds.push(p.id));
+
+  return teams;
 }
