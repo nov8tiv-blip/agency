@@ -130,7 +130,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
   },
   integrations: {
     hubspotApiKey: "",
-    yelpUrl: "",
+    yelpUrl: "https://yelp.to/tmZdwGfMAA",
     googleReviewUrl: "",
   },
   proposal: {
