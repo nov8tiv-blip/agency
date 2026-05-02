@@ -10,7 +10,11 @@
   "dependencies": {
     "@supabase/supabase-js": "^2.89.0",
     "@tailwindcss/postcss": "^4.1.18",
+    "@types/nodemailer": "^8.0.0",
+    "date-fns": "^4.1.0",
+    "lucide-react": "^1.14.0",
     "next": "16.1.1",
+    "nodemailer": "^8.0.7",
     "react": "19.2.3",
     "react-dom": "19.2.3"
   },
