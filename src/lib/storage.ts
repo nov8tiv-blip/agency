@@ -131,7 +131,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
   integrations: {
     hubspotApiKey: "",
     yelpUrl: "https://yelp.to/tmZdwGfMAA",
-    googleReviewUrl: "",
+    googleReviewUrl: "https://share.google/NZ8QNan7p8kJleeaK",
   },
   proposal: {
     defaultTaxRate: 8.25,
