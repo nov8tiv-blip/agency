@@ -1,0 +1,24 @@
+appId: com.agency.crm
+productName: Agency CRM
+copyright: Copyright © 2026
+
+directories:
+  output: dist-app
+
+files:
+  - dist-electron/**/*
+  - public/**/*
+  - package.json
+
+mac:
+  category: public.app-category.business
+  target:
+    - target: dmg
+      arch:
+        - x64
+        - arm64
+  hardenedRuntime: true
+  gatekeeperAssess: false
+
+dmg:
+  title: Agency CRM Installer

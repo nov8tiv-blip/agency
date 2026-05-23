@@ -1,0 +1,331 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── AUTH ────────────────────────────────────────────────────────────────────
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  name         String
+  avatarUrl    String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  activities Activity[]
+  notes      Note[]
+  tasks      Task[]
+  deals      Deal[]
+}
+
+// ─── CONTACTS & COMPANIES ────────────────────────────────────────────────────
+
+model Contact {
+  id             String   @id @default(cuid())
+  firstName      String
+  lastName       String
+  email          String?  @unique
+  phone          String?
+  jobTitle       String?
+  linkedinUrl    String?
+  ownerId        String?
+  companyId      String?
+  lifecycleStage String   @default("lead")
+  deletedAt      DateTime?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  company         Company?        @relation(fields: [companyId], references: [id])
+  activities      Activity[]
+  deals           DealContact[]
+  notes           Note[]
+  tasks           Task[]
+  emailRecipients EmailRecipient[]
+}
+
+model Company {
+  id            String    @id @default(cuid())
+  name          String
+  domain        String?   @unique
+  industry      String?
+  size          String?
+  annualRevenue Decimal?
+  city          String?
+  country       String?
+  ownerId       String?
+  deletedAt     DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  contacts Contact[]
+  deals    Deal[]
+}
+
+// ─── ACTIVITIES ──────────────────────────────────────────────────────────────
+
+model Activity {
+  id          String       @id @default(cuid())
+  type        ActivityType
+  subject     String
+  body        String?
+  durationMin Int?
+  outcome     String?
+  direction   String?
+  contactId   String?
+  dealId      String?
+  userId      String
+  occurredAt  DateTime     @default(now())
+  createdAt   DateTime     @default(now())
+
+  contact Contact? @relation(fields: [contactId], references: [id])
+  deal    Deal?    @relation(fields: [dealId], references: [id])
+  user    User     @relation(fields: [userId], references: [id])
+}
+
+enum ActivityType {
+  NOTE
+  CALL
+  EMAIL
+  MEETING
+  TASK
+}
+
+model Note {
+  id        String   @id @default(cuid())
+  body      String
+  contactId String?
+  dealId    String?
+  userId    String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  contact Contact? @relation(fields: [contactId], references: [id])
+  deal    Deal?    @relation(fields: [dealId], references: [id])
+  user    User     @relation(fields: [userId], references: [id])
+}
+
+model Task {
+  id         String    @id @default(cuid())
+  title      String
+  dueDate    DateTime?
+  completed  Boolean   @default(false)
+  priority   String    @default("medium")
+  contactId  String?
+  dealId     String?
+  assignedTo String
+  createdAt  DateTime  @default(now())
+
+  contact Contact? @relation(fields: [contactId], references: [id])
+  deal    Deal?    @relation(fields: [dealId], references: [id])
+  user    User     @relation(fields: [assignedTo], references: [id])
+}
+
+// ─── DEALS & PIPELINE ────────────────────────────────────────────────────────
+
+model Pipeline {
+  id        String   @id @default(cuid())
+  name      String
+  isDefault Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  stages PipelineStage[]
+  deals  Deal[]
+}
+
+model PipelineStage {
+  id          String   @id @default(cuid())
+  name        String
+  order       Int
+  probability Int      @default(0)
+  pipelineId  String
+  createdAt   DateTime @default(now())
+
+  pipeline Pipeline @relation(fields: [pipelineId], references: [id])
+  deals    Deal[]
+}
+
+model Deal {
+  id          String    @id @default(cuid())
+  name        String
+  amount      Decimal?
+  closeDate   DateTime?
+  stageId     String
+  pipelineId  String
+  companyId   String?
+  ownerId     String
+  probability Int?
+  lostReason  String?
+  deletedAt   DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  stage    PipelineStage @relation(fields: [stageId], references: [id])
+  pipeline Pipeline      @relation(fields: [pipelineId], references: [id])
+  company  Company?      @relation(fields: [companyId], references: [id])
+  owner    User          @relation(fields: [ownerId], references: [id])
+
+  contacts   DealContact[]
+  activities Activity[]
+  notes      Note[]
+  tasks      Task[]
+  proposals  Proposal[]
+}
+
+model DealContact {
+  dealId    String
+  contactId String
+
+  deal    Deal    @relation(fields: [dealId], references: [id])
+  contact Contact @relation(fields: [contactId], references: [id])
+
+  @@id([dealId, contactId])
+}
+
+// ─── PROPOSALS & QUOTES ──────────────────────────────────────────────────────
+
+model Proposal {
+  id              String         @id @default(cuid())
+  title           String
+  status          ProposalStatus @default(DRAFT)
+  dealId          String?
+  recipientEmail  String?
+  validUntil      DateTime?
+  notes           String?
+  subtotal        Decimal        @default(0)
+  discount        Decimal        @default(0)
+  tax             Decimal        @default(0)
+  total           Decimal        @default(0)
+  pdfS3Key        String?
+  signedAt        DateTime?
+  signatureIp     String?
+  signatureName   String?
+  signatureS3Key  String?
+  viewedAt        DateTime?
+  publicToken     String         @unique @default(cuid())
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  deal      Deal?      @relation(fields: [dealId], references: [id])
+  lineItems LineItem[]
+}
+
+enum ProposalStatus {
+  DRAFT
+  SENT
+  VIEWED
+  SIGNED
+  DECLINED
+  EXPIRED
+}
+
+model LineItem {
+  id          String  @id @default(cuid())
+  proposalId  String
+  name        String
+  description String?
+  quantity    Decimal @default(1)
+  unitPrice   Decimal
+  total       Decimal
+  order       Int     @default(0)
+
+  proposal Proposal @relation(fields: [proposalId], references: [id], onDelete: Cascade)
+}
+
+// ─── EMAIL MARKETING ─────────────────────────────────────────────────────────
+
+model EmailTemplate {
+  id        String   @id @default(cuid())
+  name      String
+  subject   String
+  bodyHtml  String
+  bodyText  String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  campaigns Campaign[]
+}
+
+model Campaign {
+  id          String         @id @default(cuid())
+  name        String
+  subject     String
+  fromName    String
+  fromEmail   String
+  status      CampaignStatus @default(DRAFT)
+  templateId  String?
+  bodyHtml    String
+  bodyText    String?
+  scheduledAt DateTime?
+  sentAt      DateTime?
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+
+  template   EmailTemplate?  @relation(fields: [templateId], references: [id])
+  recipients EmailRecipient[]
+}
+
+enum CampaignStatus {
+  DRAFT
+  SCHEDULED
+  SENDING
+  SENT
+  PAUSED
+}
+
+model EmailRecipient {
+  id              String          @id @default(cuid())
+  campaignId      String
+  contactId       String?
+  email           String
+  status          RecipientStatus @default(PENDING)
+  messageId       String?
+  sentAt          DateTime?
+  openedAt        DateTime?
+  clickedAt       DateTime?
+  bouncedAt       DateTime?
+  unsubscribedAt  DateTime?
+  trackingToken   String          @unique @default(cuid())
+
+  campaign Campaign       @relation(fields: [campaignId], references: [id])
+  contact  Contact?       @relation(fields: [contactId], references: [id])
+  clicks   EmailClick[]
+}
+
+enum RecipientStatus {
+  PENDING
+  SENT
+  OPENED
+  CLICKED
+  BOUNCED
+  COMPLAINED
+  UNSUBSCRIBED
+}
+
+model EmailClick {
+  id          String   @id @default(cuid())
+  recipientId String
+  url         String
+  clickedAt   DateTime @default(now())
+
+  recipient EmailRecipient @relation(fields: [recipientId], references: [id])
+}
+
+// ─── ATTACHMENTS ─────────────────────────────────────────────────────────────
+
+model Attachment {
+  id         String   @id @default(cuid())
+  fileName   String
+  mimeType   String
+  sizeBytes  Int
+  s3Key      String
+  entityType String
+  entityId   String
+  uploadedBy String
+  createdAt  DateTime @default(now())
+}
