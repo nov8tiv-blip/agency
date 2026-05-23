@@ -1,12 +1,5 @@
-import Link from "next/link";
+import { redirect } from "next/navigation";
 
-export default function HomePage() {
-  return (
-    <main style={{ padding: 24 }}>
-      <h1>Agency</h1>
-      <p>
-        <Link href="/agency/join">Join a session</Link>
-      </p>
-    </main>
-  );
+export default function Home() {
+  redirect("/contacts");
 }
