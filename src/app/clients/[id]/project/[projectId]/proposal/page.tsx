@@ -313,7 +313,8 @@ export default function ProposalPage() {
               </div>
             }
           >
-            <div className="space-y-1">
+            <div className="overflow-x-auto -mx-6 px-6">
+            <div className="space-y-1 min-w-[560px]">
               {/* Header */}
               <div className="grid grid-cols-12 gap-2 text-xs font-semibold text-gray-400 uppercase px-2 pb-1">
                 <div className="col-span-5">Description</div>
@@ -371,6 +372,7 @@ export default function ProposalPage() {
                   No line items. Click "+ Material" or "+ Labor" to add.
                 </div>
               )}
+            </div>
             </div>
           </Card>
 
