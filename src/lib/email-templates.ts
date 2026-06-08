@@ -1,4 +1,5 @@
-import type { Client, Project, Proposal, AppSettings } from "./types";
+import type { Client, Project, Proposal, AppSettings, QuickQuote } from "./types";
+import { FENCE_TYPE_LABELS } from "./quote-estimator";
 
 // ─── Proposal email ───────────────────────────────────────────────────────────
 
@@ -157,6 +158,78 @@ export function reviewRequestEmailHtml(
 </html>`;
 
   const text = `Dear ${client.firstName},\n\nThank you for choosing ${co.name}!\n\n${googleReviewUrl ? `Google Review: ${googleReviewUrl}\n` : ""}${yelpUrl ? `Yelp Review: ${yelpUrl}\n` : ""}\n\nThank you!\n${co.name}`;
+
+  return { subject, html, text };
+}
+
+// ─── Quick Quote email ────────────────────────────────────────────────────────
+
+export function quickQuoteEmailHtml(
+  quote: QuickQuote,
+  settings: AppSettings
+): { subject: string; html: string; text: string } {
+  const co = settings.company;
+  const subject = `Your Fencing Estimate - ${co.name}`;
+  const fenceLabel = FENCE_TYPE_LABELS[quote.fenceType];
+  const validUntil = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toLocaleDateString("en-US", {
+    year: "numeric", month: "long", day: "numeric",
+  });
+
+  const html = `
+<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/></head>
+<body style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;padding:20px;color:#333;">
+  <div style="background:#1a365d;color:white;padding:24px;border-radius:8px 8px 0 0;">
+    <h1 style="margin:0;font-size:24px;">${co.name}</h1>
+    <p style="margin:4px 0 0;opacity:0.8;">${co.phone} &bull; ${co.email}</p>
+  </div>
+  <div style="border:1px solid #e2e8f0;border-top:none;padding:24px;border-radius:0 0 8px 8px;">
+    <p>Dear ${quote.firstName},</p>
+    <p>Thank you for your interest in our fencing services! Based on the information you provided, here is your free estimate:</p>
+
+    <div style="background:#f7fafc;border:1px solid #e2e8f0;border-radius:6px;padding:16px;margin:20px 0;">
+      <h3 style="margin:0 0 12px;color:#1a365d;">Estimate Summary</h3>
+      <table style="width:100%;border-collapse:collapse;">
+        <tr><td style="padding:4px 0;color:#666;">Fence Type:</td><td style="padding:4px 0;font-weight:bold;">${fenceLabel}</td></tr>
+        <tr><td style="padding:4px 0;color:#666;">Linear Feet:</td><td style="padding:4px 0;">${quote.linearFeet} lf</td></tr>
+        <tr><td style="padding:4px 0;color:#666;">Height:</td><td style="padding:4px 0;">${quote.fenceHeight} ft</td></tr>
+        ${quote.gateCount > 0 ? `<tr><td style="padding:4px 0;color:#666;">Gates:</td><td style="padding:4px 0;">${quote.gateCount}</td></tr>` : ""}
+        ${quote.existingRemoval ? `<tr><td style="padding:4px 0;color:#666;">Removal:</td><td style="padding:4px 0;">Included</td></tr>` : ""}
+        <tr style="border-top:2px solid #1a365d;">
+          <td style="padding:12px 0 4px;font-size:18px;font-weight:bold;color:#1a365d;">Estimated Range:</td>
+          <td style="padding:12px 0 4px;font-size:18px;font-weight:bold;color:#1a365d;">$${quote.estimateMin.toLocaleString()} – $${quote.estimateMax.toLocaleString()}</td>
+        </tr>
+      </table>
+    </div>
+
+    <p style="background:#e8f5e9;border:1px solid #81c784;border-radius:4px;padding:12px;font-size:14px;">
+      <strong>This is a free estimate</strong> based on the details provided. Final pricing may vary based on an on-site consultation. This estimate is valid for 30 days (until ${validUntil}).
+    </p>
+
+    <p>Ready to move forward? <strong>Call or text us at ${co.phone}</strong> to schedule a free on-site measurement and get a detailed written proposal.</p>
+
+    <p>We look forward to working with you!</p>
+    <p style="margin:0;">Sincerely,<br/><strong>${co.name}</strong><br/>${co.phone}<br/>${co.email}${co.website ? `<br/>${co.website}` : ""}</p>
+  </div>
+</body>
+</html>`;
+
+  const text = `Dear ${quote.firstName},
+
+Thank you for your interest in our fencing services!
+
+Your Estimate:
+Fence Type: ${fenceLabel}
+Linear Feet: ${quote.linearFeet} lf
+Height: ${quote.fenceHeight} ft
+${quote.gateCount > 0 ? `Gates: ${quote.gateCount}\n` : ""}Estimated Range: $${quote.estimateMin.toLocaleString()} – $${quote.estimateMax.toLocaleString()}
+
+This estimate is valid for 30 days. Call us at ${co.phone} to schedule a free on-site consultation.
+
+${co.name}
+${co.phone}
+${co.email}`;
 
   return { subject, html, text };
 }

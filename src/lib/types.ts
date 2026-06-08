@@ -350,6 +350,37 @@ export interface FollowUp {
   createdAt: string;
 }
 
+// ─── Quick Quote ──────────────────────────────────────────────────────────────
+
+export type QuickQuoteStatus = "new" | "contacted" | "converted" | "lost";
+
+export interface QuickQuote {
+  id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone: string;
+  address?: string;
+  city: string;
+  state: string;
+  fenceType: FenceType;
+  linearFeet: number;
+  fenceHeight: number;
+  gateCount: number;
+  existingRemoval: boolean;
+  removalFeet?: number;
+  estimateMin: number;
+  estimateMax: number;
+  status: QuickQuoteStatus;
+  notes?: string;
+  source: "web_form" | "admin" | "phone";
+  sentAt?: string;
+  convertedClientId?: string;
+  convertedProjectId?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 // ─── App Settings ─────────────────────────────────────────────────────────────
 
 export interface AppSettings {

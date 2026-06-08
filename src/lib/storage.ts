@@ -1,6 +1,6 @@
 "use client";
 
-import type { Client, Project, Proposal, FollowUp, AppSettings } from "./types";
+import type { Client, Project, Proposal, FollowUp, AppSettings, QuickQuote } from "./types";
 
 // ─── Keys ─────────────────────────────────────────────────────────────────────
 
@@ -10,6 +10,7 @@ const KEYS = {
   proposals: "fnc_proposals",
   followups: "fnc_followups",
   settings: "fnc_settings",
+  quickQuotes: "fnc_quick_quotes",
 };
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -130,6 +131,8 @@ export const DEFAULT_SETTINGS: AppSettings = {
   },
   integrations: {
     hubspotApiKey: "",
+    gmailUser: "mike.riversidefenceco@gmail.com",
+    gmailAppPassword: "",
     yelpUrl: "https://yelp.to/tmZdwGfMAA",
     googleReviewUrl: "https://share.google/NZ8QNan7p8kJleeaK",
   },
@@ -148,6 +151,27 @@ export const DEFAULT_SETTINGS: AppSettings = {
     markupPercent: 0,
   },
 };
+
+// ─── Quick Quotes ─────────────────────────────────────────────────────────────
+
+export function getQuickQuotes(): QuickQuote[] {
+  return load<QuickQuote[]>(KEYS.quickQuotes, []);
+}
+
+export function getQuickQuote(id: string): QuickQuote | undefined {
+  return getQuickQuotes().find((q) => q.id === id);
+}
+
+export function saveQuickQuote(quote: QuickQuote): void {
+  const list = getQuickQuotes().filter((q) => q.id !== quote.id);
+  save(KEYS.quickQuotes, [...list, { ...quote, updatedAt: new Date().toISOString() }]);
+}
+
+export function deleteQuickQuote(id: string): void {
+  save(KEYS.quickQuotes, getQuickQuotes().filter((q) => q.id !== id));
+}
+
+// ─── Settings ─────────────────────────────────────────────────────────────────
 
 export function getSettings(): AppSettings {
   return load<AppSettings>(KEYS.settings, DEFAULT_SETTINGS);

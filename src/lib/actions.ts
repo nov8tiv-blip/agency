@@ -1,11 +1,12 @@
 "use client";
 
-import type { Client, Project, Proposal, AppSettings } from "./types";
+import type { Client, Project, Proposal, AppSettings, QuickQuote } from "./types";
 import {
   proposalEmailHtml,
   followUpEmailHtml,
   reviewRequestEmailHtml,
   thankYouLetterHtml,
+  quickQuoteEmailHtml,
 } from "./email-templates";
 
 // ─── Email actions (calls our /api/email route) ───────────────────────────────
@@ -27,6 +28,14 @@ async function sendEmail(
     body: JSON.stringify({ to, subject, html, text, gmailUser, gmailAppPassword }),
   });
   return res.ok ? { ok: true } : { ok: false, error: await res.text() };
+}
+
+export async function sendQuickQuoteEmail(
+  quote: QuickQuote,
+  settings: AppSettings
+): Promise<{ ok: boolean; error?: string }> {
+  const { subject, html, text } = quickQuoteEmailHtml(quote, settings);
+  return sendEmail(settings, quote.email, subject, html, text);
 }
 
 export async function sendProposalEmail(
