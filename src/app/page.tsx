@@ -1,207 +1,111 @@
-"use client";
-
-import { useEffect, useState } from "react";
 import Link from "next/link";
-import AppLayout from "@/components/layout/AppLayout";
-import { StatCard, Card, Badge, Button } from "@/components/ui";
-import { getClients, getProjects, getFollowUps } from "@/lib/storage";
-import type { Client, Project, FollowUp } from "@/lib/types";
 
-const STATUS_COLOR: Record<string, "gray" | "blue" | "green" | "yellow" | "red" | "purple"> = {
-  lead: "blue",
-  active: "yellow",
-  completed: "green",
-  lost: "red",
-  discovery: "blue",
-  measuring: "purple",
-  proposal_draft: "yellow",
-  proposal_sent: "indigo" as "purple",
-  approved: "green",
-  in_progress: "yellow",
-};
-
-const STATUS_LABEL: Record<string, string> = {
-  lead: "Lead",
-  active: "Active",
-  completed: "Completed",
-  lost: "Lost",
-  discovery: "Discovery",
-  measuring: "Measuring",
-  proposal_draft: "Proposal Draft",
-  proposal_sent: "Proposal Sent",
-  approved: "Approved",
-  in_progress: "In Progress",
-};
-
-export default function DashboardPage() {
-  const [clients, setClients] = useState<Client[]>([]);
-  const [projects, setProjects] = useState<Project[]>([]);
-  const [followUps, setFollowUps] = useState<FollowUp[]>([]);
-
-  useEffect(() => {
-    setClients(getClients());
-    setProjects(getProjects());
-    setFollowUps(getFollowUps());
-  }, []);
-
-  const activeProjects = projects.filter(
-    (p) => !["completed", "lost"].includes(p.status)
-  );
-  const pendingFollowUps = followUps.filter(
-    (f) => f.status === "pending" && new Date(f.scheduledAt) <= new Date()
-  );
-  const recentClients = [...clients]
-    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-    .slice(0, 5);
-
-  const openProposals = projects.filter((p) => p.status === "proposal_sent").length;
-
+export default function HomePage() {
   return (
-    <AppLayout>
-      <div className="flex items-start justify-between mb-8">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
-          <p className="text-sm text-gray-500 mt-1">
-            {new Date().toLocaleDateString("en-US", { weekday: "long", year: "numeric", month: "long", day: "numeric" })}
+    <>
+      {/* Hero */}
+      <section className="relative overflow-hidden bg-gray-950 text-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-32 sm:py-44 relative z-10">
+          <h1 className="text-5xl sm:text-7xl font-bold tracking-tight leading-[1.05]">
+            Wear the
+            <br />
+            <span className="text-gray-400">Vision.</span>
+          </h1>
+          <p className="mt-6 text-lg sm:text-xl text-gray-400 max-w-lg">
+            Premium custom streetwear designed with purpose. Every piece tells a
+            story.
           </p>
-        </div>
-        <Link href="/clients/new">
-          <Button>
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-            </svg>
-            New Client
-          </Button>
-        </Link>
-      </div>
-
-      {/* Stats */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-        <StatCard label="Total Clients" value={clients.length} sub={`${clients.filter(c => c.status === 'lead').length} new leads`} color="blue" />
-        <StatCard label="Active Projects" value={activeProjects.length} sub="In progress" color="yellow" />
-        <StatCard label="Open Proposals" value={openProposals} sub="Awaiting approval" color="purple" />
-        <StatCard label="Follow-Ups Due" value={pendingFollowUps.length} sub="Need attention" color={pendingFollowUps.length > 0 ? "red" : "green"} />
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Recent Clients */}
-        <Card
-          title="Recent Clients"
-          actions={
-            <Link href="/clients" className="text-sm text-blue-600 hover:text-blue-700 font-medium">
-              View all
+          <div className="mt-10 flex flex-wrap gap-4">
+            <Link
+              href="/shop"
+              className="inline-flex items-center px-8 py-3.5 bg-white text-black text-sm font-semibold rounded-full hover:bg-gray-200 transition-colors"
+            >
+              Shop Now
             </Link>
-          }
-        >
-          {recentClients.length === 0 ? (
-            <div className="text-center py-8">
-              <p className="text-gray-400 text-sm">No clients yet.</p>
-              <Link href="/clients/new">
-                <Button size="sm" className="mt-3">Add your first client</Button>
-              </Link>
-            </div>
-          ) : (
-            <div className="divide-y divide-gray-100 -mx-6">
-              {recentClients.map((client) => (
-                <Link
-                  key={client.id}
-                  href={`/clients/${client.id}`}
-                  className="flex items-center justify-between px-6 py-3 hover:bg-gray-50 transition-colors"
-                >
-                  <div>
-                    <div className="font-medium text-gray-900 text-sm">
-                      {client.firstName} {client.lastName}
-                    </div>
-                    <div className="text-xs text-gray-500">{client.city}, {client.state} &bull; {client.phone}</div>
-                  </div>
-                  <Badge color={STATUS_COLOR[client.status] || "gray"}>
-                    {STATUS_LABEL[client.status]}
-                  </Badge>
-                </Link>
-              ))}
-            </div>
-          )}
-        </Card>
+            <Link
+              href="/about"
+              className="inline-flex items-center px-8 py-3.5 border border-gray-600 text-gray-300 text-sm font-medium rounded-full hover:border-white hover:text-white transition-colors"
+            >
+              Our Story
+            </Link>
+          </div>
+        </div>
 
-        {/* Active Projects */}
-        <Card
-          title="Active Projects"
-          actions={
-            activeProjects.length > 5 ? (
-              <Link href="/clients" className="text-sm text-blue-600 hover:text-blue-700 font-medium">
-                View all
-              </Link>
-            ) : undefined
-          }
-        >
-          {activeProjects.length === 0 ? (
-            <div className="text-center py-8">
-              <p className="text-gray-400 text-sm">No active projects.</p>
-            </div>
-          ) : (
-            <div className="divide-y divide-gray-100 -mx-6">
-              {activeProjects.slice(0, 5).map((project) => {
-                const client = clients.find((c) => c.id === project.clientId);
-                return (
-                  <Link
-                    key={project.id}
-                    href={`/clients/${project.clientId}/project/${project.id}`}
-                    className="flex items-center justify-between px-6 py-3 hover:bg-gray-50 transition-colors"
-                  >
-                    <div>
-                      <div className="font-medium text-gray-900 text-sm">{project.name}</div>
-                      <div className="text-xs text-gray-500">
-                        {client ? `${client.firstName} ${client.lastName}` : "Unknown client"}
-                      </div>
-                    </div>
-                    <Badge color={STATUS_COLOR[project.status] || "gray"}>
-                      {STATUS_LABEL[project.status]}
-                    </Badge>
-                  </Link>
-                );
-              })}
-            </div>
-          )}
-        </Card>
+        {/* Background pattern */}
+        <div className="absolute inset-0 opacity-5">
+          <div
+            className="absolute inset-0"
+            style={{
+              backgroundImage:
+                "radial-gradient(circle at 1px 1px, white 1px, transparent 0)",
+              backgroundSize: "40px 40px",
+            }}
+          />
+        </div>
+      </section>
 
-        {/* Pending Follow-ups */}
-        {pendingFollowUps.length > 0 && (
-          <Card title="Follow-Ups Due" className="lg:col-span-2">
-            <div className="divide-y divide-gray-100 -mx-6 -mb-6">
-              {pendingFollowUps.slice(0, 5).map((fu) => {
-                const client = clients.find((c) => c.id === fu.clientId);
-                const overdue = new Date(fu.scheduledAt) < new Date();
-                return (
-                  <div key={fu.id} className="flex items-center gap-4 px-6 py-3">
-                    <div className={`w-2 h-2 rounded-full flex-shrink-0 ${overdue ? "bg-red-500" : "bg-yellow-500"}`} />
-                    <div className="flex-1">
-                      <div className="font-medium text-sm text-gray-900">
-                        {client ? `${client.firstName} ${client.lastName}` : "Unknown"}
-                      </div>
-                      <div className="text-xs text-gray-500">
-                        {fu.type.toUpperCase()} &bull;{" "}
-                        {new Date(fu.scheduledAt).toLocaleDateString("en-US", {
-                          month: "short",
-                          day: "numeric",
-                          hour: "numeric",
-                          minute: "2-digit",
-                        })}
-                        {fu.notes && ` — ${fu.notes}`}
-                      </div>
-                    </div>
-                    {overdue && <Badge color="red">Overdue</Badge>}
-                    {client && (
-                      <Link href={`/clients/${client.id}`}>
-                        <Button size="sm" variant="secondary">View</Button>
-                      </Link>
-                    )}
-                  </div>
-                );
-              })}
+      {/* Features */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-10 text-center">
+          <div>
+            <div className="w-12 h-12 mx-auto mb-4 rounded-full bg-gray-100 flex items-center justify-center">
+              <svg className="w-5 h-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+              </svg>
             </div>
-          </Card>
-        )}
-      </div>
-    </AppLayout>
+            <h3 className="text-sm font-semibold text-gray-900 mb-1">
+              Premium Quality
+            </h3>
+            <p className="text-sm text-gray-500">
+              High-quality fabrics and printing that lasts.
+            </p>
+          </div>
+          <div>
+            <div className="w-12 h-12 mx-auto mb-4 rounded-full bg-gray-100 flex items-center justify-center">
+              <svg className="w-5 h-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+              </svg>
+            </div>
+            <h3 className="text-sm font-semibold text-gray-900 mb-1">
+              Made to Order
+            </h3>
+            <p className="text-sm text-gray-500">
+              Zero waste. Every piece is printed just for you.
+            </p>
+          </div>
+          <div>
+            <div className="w-12 h-12 mx-auto mb-4 rounded-full bg-gray-100 flex items-center justify-center">
+              <svg className="w-5 h-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <h3 className="text-sm font-semibold text-gray-900 mb-1">
+              Worldwide Shipping
+            </h3>
+            <p className="text-sm text-gray-500">
+              Delivered to your door, wherever you are.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* CTA */}
+      <section className="bg-gray-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 text-center">
+          <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-gray-900">
+            Ready to rep the vision?
+          </h2>
+          <p className="mt-4 text-gray-500 max-w-md mx-auto">
+            Browse the collection and find your next favorite piece.
+          </p>
+          <Link
+            href="/shop"
+            className="mt-8 inline-flex items-center px-8 py-3.5 bg-black text-white text-sm font-semibold rounded-full hover:bg-gray-800 transition-colors"
+          >
+            Browse Collection
+          </Link>
+        </div>
+      </section>
+    </>
   );
 }
